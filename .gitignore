@@ -37,3 +37,6 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+# Compiled Program
+main

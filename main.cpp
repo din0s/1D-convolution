@@ -1,5 +1,5 @@
 #include <random>
-#include "iostream"
+#include <iostream>
 #include "AudioFile.h"
 
 #define DEBUG 1
@@ -40,7 +40,7 @@ vector<float> *generate(int n)
 {
     random_device rnd;
     mt19937 gen(rnd());
-    uniform_real_distribution<float> dis(-1, 1);
+    normal_distribution<float> dis(0.0, 0.15);
     vector<float> *result = new vector<float>(n);
     generate(result->begin(), result->end(), [&dis, &gen]() { return dis(gen); });
     return result;
@@ -81,7 +81,7 @@ vector<float> *myConvolve(vector<float> *a, vector<float> *b)
     return result;
 }
 
-int first_task()
+int firstTask()
 {
     int n = read_num();
     vector<float> *a = generate(n);
@@ -99,9 +99,9 @@ int first_task()
     return 0;
 }
 
-int second_task()
+int secondTask()
 {
-    AudioFile<float> *audio = readWav("./sample_audio2.wav");
+    AudioFile<float> *audio = readWav("./sample_audio.wav");
     AudioFile<float> *noise = readWav("./pink_noise.wav");
     if (audio == nullptr || noise == nullptr)
     {
@@ -134,6 +134,6 @@ int second_task()
 
 int main(int argc, char const *argv[])
 {
-    // return first_task();
-    return second_task();
+    // return firstTask();
+    return secondTask();
 }

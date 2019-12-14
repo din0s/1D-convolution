@@ -1,13 +1,13 @@
-#include "lib/Convolution.cpp"
+#include "lib/Convolution.cu"
 #include "Utils.h"
 
 void convolveFile(std::string type, float *audio, float *noise, float *res, int aSize, int nSize, int cSize, AudioFile<float> &file)
 {
-    std::cout << "Convoluting with " << type << " noise ... ";
-    myConvolve(audio, noise, res, aSize, nSize);
-    std::cout << "Done!" << std::endl;
-    file.samples[0] = std::vector<float>(res, res + cSize);
-    file.save("./" + type + "Noise_sampleAudio.wav", AudioFileFormat::Wave);
+        std::cout << "Convoluting with " << type << " noise ... ";
+        myConvolve(audio, noise, res, aSize, nSize);
+        std::cout << "Done!" << std::endl;
+        file.samples[0] = std::vector<float>(res, res + cSize);
+        file.save("./" + type + "Noise_sampleAudio.wav", AudioFileFormat::Wave);
 }
 
 int main(int argc, char const *argv[])
@@ -15,9 +15,14 @@ int main(int argc, char const *argv[])
     if (Utils::selectModule() == VECTOR_CONV)
     {
         int n = Utils::readNum();
-        float *a = new float[n];
-        float b[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        float *res = new float[n + 4];
+        float *a; cudaMallocManaged(&a, n * sizeof(float));
+        float *b; cudaMallocManaged(&b, 5 * sizeof(float));
+        float *res; cudaMallocManaged(&res, (n + 4) * sizeof(float));
+
+        for (int i = 0; i < 5; ++i)
+        {
+            b[i] = 0.2;
+        }
 
         Utils::generate(a, n);
         std::cout << "Generated a random array A:" << std::endl;
@@ -27,8 +32,9 @@ int main(int argc, char const *argv[])
         std::cout << "Convolution with [ 0.2 0.2 0.2 0.2 0.2 ] is:" << std::endl;
         Utils::print(res, n + 4);
 
-        delete[] a;
-        delete[] res;
+        cudaFree(a);
+        cudaFree(b);
+        cudaFree(res);
     }
     else
     {
@@ -49,9 +55,9 @@ int main(int argc, char const *argv[])
         int nSize = noiseVec.size();
         int cSize = aSize + nSize - 1;
 
-        float *audio = &audioVec[0];
-        float *noise = &noiseVec[0];
-        float *res = new float[cSize];
+        float *audio; cudaMallocManaged(&audio, aSize * sizeof(float)); Utils::copy2Arr(audioVec, audio, aSize);
+        float *noise; cudaMallocManaged(&noise, nSize * sizeof(float)); Utils::copy2Arr(noiseVec, noise, nSize);
+        float *res; cudaMallocManaged(&res, cSize * sizeof(float));
 
         convolveFile("pink", audio, noise, res, aSize, nSize, cSize, resultWav);
 
@@ -63,7 +69,9 @@ int main(int argc, char const *argv[])
 
         delete audioWav;
         delete noiseWav;
-        delete[] res;
+        cudaFree(audio);
+        cudaFree(noise);
+        cudaFree(res);
     }
     return 0;
 }

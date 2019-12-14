@@ -40,3 +40,6 @@
 
 # Compiled Program
 main
+
+# CUDA Related
+*.exp
